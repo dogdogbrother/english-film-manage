@@ -1,4 +1,3 @@
-import classes from './layout.module.less'
 import type { MenuProps } from 'antd'
 import { Menu } from 'antd'
 import {
@@ -37,8 +36,8 @@ const Aside = () => {
       getItem('Option 8', '8'),
     ]),
   ]
-  return <aside className={classes.aside}>
-    <Menu  mode="inline" theme="dark" items={items}>
+  return <aside style={{gridArea: 'aside'}} w-50>
+    <Menu h-screen mode="inline" theme="dark" items={items}>
       
     </Menu>
   </aside>

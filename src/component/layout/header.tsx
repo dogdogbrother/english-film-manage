@@ -1,8 +1,5 @@
-
-import classes from './layout.module.less'
-
 const Header = () => {
-  return <header className={classes.header}>
+  return <header style={{gridArea: 'header'}} flex p-x-3 border="b-solid b-1 gray-3" items-center>
     我是头部
   </header>
 }

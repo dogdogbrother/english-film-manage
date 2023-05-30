@@ -1,7 +1,5 @@
-import classes from './layout.module.less'
-
 const Main = () => {
-  return <main className={classes.main}>我是main</main>
+  return <main style={{gridArea: 'main'}} p-3>我是main</main>
 }
 
 export default Main
