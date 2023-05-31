@@ -1,10 +1,11 @@
-import Home from './component/layout'
+import { BrowserRouter } from 'react-router-dom'
+import { RenderRoutes } from '@/router'
 
 function App() {
   return (
-    <>
-      <Home />
-    </>
+    <BrowserRouter>
+      <RenderRoutes />
+    </BrowserRouter>
   )
 }
 
