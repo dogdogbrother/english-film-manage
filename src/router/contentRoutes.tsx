@@ -1,34 +1,41 @@
 import {
   ContainerOutlined,
-  DesktopOutlined,
+  VideoCameraOutlined
 } from '@ant-design/icons'
-// import Home from '@/pages/home'
-import HomeTow from '@/pages/home2'
-import HomeSub from '@/pages/home-sub'
+import FilmManage from '@/pages/film-manage'
+import Home from '@/pages/home'
+import FragmentManage from '@/pages/fragment-manage'
 
 export interface ContentRoutes {
   path: string
-  icon: JSX.Element
+  icon?: JSX.Element
   element?: JSX.Element
   name: string
+  hidden?: boolean
   children?: {
     name: string
     path: string
     element: JSX.Element
+    hidden?: boolean
   }[]
 }
 export const contentRoutes: ContentRoutes[] = [
   { 
     path: '/home', 
     icon: <ContainerOutlined />,
-    name: '一级菜单',
-    children: [
-      {
-        path: '/home-ube', 
-        element: <HomeSub />, 
-        name: '一级子菜单'
-      }
-    ]
+    element: <Home />, 
+    name: '首页',
   },
-  { path: '/home2', name: '第二个菜单', element: <HomeTow />, icon: <DesktopOutlined /> }
+  { 
+    path: '/film-manage', 
+    icon: <VideoCameraOutlined />,
+    element: <FilmManage />, 
+    name: '电影管理'
+  },
+  { 
+    path: '/fragment-manage', 
+    element: <FragmentManage />, 
+    name: '电影片段',
+    hidden: true
+  },
 ]

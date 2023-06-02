@@ -3,12 +3,18 @@ import { Menu } from 'antd'
 import layoutStore from './layoutStore'
 import { observer } from "mobx-react-lite"
 import { contentRoutes } from "@/router/contentRoutes";
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
+import { useState, useEffect } from 'react';
 
 type MenuItem = Required<MenuProps>['items'][number];
 
 const Aside = observer(() => {
   const navigate = useNavigate()
+  const location = useLocation()
+  const [selectedMenu, setSelectedMenu] = useState<string[]>([])
+  useEffect(() => {
+    setSelectedMenu([location.pathname])
+  }, [location])
   const { collapsed } = layoutStore
   function getItem(
     label: React.ReactNode,
@@ -25,7 +31,8 @@ const Aside = observer(() => {
       type,
     } as MenuItem;
   }
-  const items: MenuItem[] = contentRoutes.map(route => {
+  
+  const items: MenuItem[] = contentRoutes.filter(route => !route.hidden).map(route => {
     const { path, children, icon, name } = route
     return getItem(
       name, 
@@ -38,8 +45,16 @@ const Aside = observer(() => {
   function onMenu(menu: any) {
     navigate(menu.key)
   }
-  return <aside style={{gridArea: 'aside'}} className={!collapsed ? 'w-50' : undefined}>
-    <Menu h-screen mode="inline" theme="dark" items={items} inlineCollapsed={collapsed} onClick={onMenu}/>
+  return <aside style={{gridArea: 'aside'}} className={!collapsed ? 'w-50' : undefined} relative z-1>
+    <Menu 
+      h-screen 
+      mode="inline" 
+      theme="dark" 
+      items={items} 
+      inlineCollapsed={collapsed} 
+      onClick={onMenu}
+      selectedKeys={selectedMenu}
+    />
   </aside>
 })
 
