@@ -9,9 +9,9 @@ interface FormProp {
   password: string
 }
 function Login() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   const { register, handleSubmit, formState: { errors } } = useForm<FormProp>();
-  const [data, setData] = useState("");
+  // const [data, setData] = useState("");
   function onLogin(form: FormProp) {
     console.log(form);
     navigate('/')

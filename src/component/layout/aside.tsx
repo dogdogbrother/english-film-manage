@@ -1,15 +1,15 @@
 import type { MenuProps } from 'antd'
 import { Menu } from 'antd'
-import {
-  ContainerOutlined,
-  DesktopOutlined,
-  MailOutlined,
-  PieChartOutlined,
-} from '@ant-design/icons'
+import layoutStore from './layoutStore'
+import { observer } from "mobx-react-lite"
+import { contentRoutes } from "@/router/contentRoutes";
+import { useNavigate } from "react-router-dom"
 
 type MenuItem = Required<MenuProps>['items'][number];
 
-const Aside = () => {
+const Aside = observer(() => {
+  const navigate = useNavigate()
+  const { collapsed } = layoutStore
   function getItem(
     label: React.ReactNode,
     key: React.Key,
@@ -25,22 +25,22 @@ const Aside = () => {
       type,
     } as MenuItem;
   }
-  const items: MenuItem[] = [
-    getItem('Option 1', '1', <PieChartOutlined />),
-    getItem('Option 2', '2', <DesktopOutlined />),
-    getItem('Option 3', '3', <ContainerOutlined />),
-    getItem('Navigation One', 'sub1', <MailOutlined />, [
-      getItem('Option 5', '5'),
-      getItem('Option 6', '6'),
-      getItem('Option 7', '7'),
-      getItem('Option 8', '8'),
-    ]),
-  ]
-  return <aside style={{gridArea: 'aside'}} w-50>
-    <Menu h-screen mode="inline" theme="dark" items={items}>
-      
-    </Menu>
+  const items: MenuItem[] = contentRoutes.map(route => {
+    const { path, children, icon, name } = route
+    return getItem(
+      name, 
+      path, 
+      icon,
+      children?.length ? children.map(route => {
+        return getItem(route.name, route.path)
+      }) : undefined)
+  })
+  function onMenu(menu: any) {
+    navigate(menu.key)
+  }
+  return <aside style={{gridArea: 'aside'}} className={!collapsed ? 'w-50' : undefined}>
+    <Menu h-screen mode="inline" theme="dark" items={items} inlineCollapsed={collapsed} onClick={onMenu}/>
   </aside>
-}
+})
 
 export default Aside

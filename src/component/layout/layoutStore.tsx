@@ -1,15 +1,15 @@
 import { makeObservable, observable, action } from "mobx"
 
 class LayoutStore {
-  isShrink = false  // aside的收缩状态
+  collapsed = false  // aside的收缩状态
   constructor() {
     makeObservable(this, {
-      isShrink: observable,
-      setShrink: action
+      collapsed: observable,
+      setCollapsed: action
     })
   }
-  setShrink = (state: boolean) => {
-    this.isShrink = state
+  setCollapsed= (state: boolean) => {
+    this.collapsed = state
   }
 }
 export default new LayoutStore()
