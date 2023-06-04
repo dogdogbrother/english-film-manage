@@ -22,7 +22,9 @@ export function useGetFetch<ResProp = any>(config: FetchProp) {
     } else if (status === 401) {
       if (!res.url.includes('/user/info')) {
         // toast.error('未登录~')
+        return Promise.reject('未登录~')
       }
+      return Promise.reject('未登录~')
     } else {
       // toast.error('网络错误')
       return Promise.reject(res)
@@ -42,10 +44,10 @@ export function usePostFetch<ResProp = any>(config: FetchProp) {
   }).then(res => {
     const { status } = res
     if (status >= 200 && status < 300) {
-      return res.json().then(_res => _res as ResProp).catch(() => {
-        return res.statusText
-      })
+      return res.json() as ResProp
     }
-    return Promise.reject(res)
+    return res.text().then(res => {
+      return Promise.reject(res)
+    })
   })
 }

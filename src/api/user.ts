@@ -4,15 +4,23 @@ interface LoginProp {
   username: string
   password: string
 }
+interface LoginRes {
+  username: string
+  token: string
+  id: string
+}
 export function login(data: LoginProp) {
-  return usePostFetch({
-    url: '/api/user/login',
+  return usePostFetch<LoginRes>({
+    url: '/api/manage/user/login',
     data
   })
 }
-
+interface InfonRes {
+  username: string
+  id: string
+}
 export function getInfo() {
-  return useGetFetch({
-    url: '/api/user/info',
+  return useGetFetch<InfonRes>({
+    url: '/api/manage/user/info',
   })
 }
