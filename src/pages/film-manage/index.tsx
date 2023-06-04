@@ -1,15 +1,15 @@
 import { Button, Modal, Form, Input, Upload } from 'antd'
+import type { UploadProps } from 'antd'
 import { useState } from 'react'
 import { PlusOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 
-function getToken() {
-  return localStorage.getItem('token')
-}
+
 
 function FilmManage() {
-  console.log(import.meta.env.MODE);
-  
+  function getToken() {
+    return localStorage.getItem('token')
+  }
   const navigate = useNavigate()
   const [addState, setAddState ] = useState(false)
   const [loading, _setLoading ] = useState(false)
@@ -27,6 +27,12 @@ function FilmManage() {
   function getHostUrl() {
     return (import.meta.env.MODE === 'development' ? 'http://localhost:7001' : '/api') + '/file/img'
   }
+  const uploadProps: UploadProps  = {
+    listType: 'picture-card',
+    name: 'file',
+    action: '/api/file/img',
+    headers: { Authorization: `Bearer ${getToken()}`}
+  }
   return <div>
     <Button type='primary' onClick={addFilm}>新建电影</Button>
     <Modal 
@@ -42,14 +48,7 @@ function FilmManage() {
           <Input placeholder='请输入电影名称' w-60/>
         </Form.Item>
         <Form.Item label="电影封面" valuePropName='filmCover'>
-          <Upload 
-            listType="picture-card" 
-            action={getHostUrl()} 
-            name='file'
-            headers={{
-              'Authorization': `Bearer ${getToken()}`
-            }}
-          >
+          <Upload {...uploadProps}>
             <PlusOutlined />
           </Upload>
         </Form.Item>
