@@ -19,7 +19,6 @@ export function useGetFetch<ResProp = any>(config: FetchProp) {
     if (status >= 200 && status < 300) {
       return res.json() as ResProp
     } else if (status === 401) {
-      console.log(res.url);
       if (!res.url.includes('/user/info')) {
         return Promise.reject('未登录~')
       }
@@ -41,9 +40,13 @@ export function usePostFetch<ResProp = any>(config: FetchProp) {
       'Content-Type': 'application/json'
     })
   }).then(res => {
+    console.log(res);
     const { status } = res
     if (status >= 200 && status < 300) {
-      return res.json() as ResProp
+      if (status === 200) {
+        return res.json() as ResProp
+      }
+      return res.text() as any
     }
     return res.text().then(res => {
       return Promise.reject(res)
