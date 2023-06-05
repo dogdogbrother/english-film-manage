@@ -1,55 +1,69 @@
-import { Button, Modal, Form, Input, Upload } from 'antd'
+import { Button, Modal, Form, Input, Upload, message } from 'antd'
 import type { UploadProps } from 'antd'
 import { useState } from 'react'
-import { PlusOutlined } from '@ant-design/icons'
-import { useNavigate } from 'react-router-dom'
-
-
+import { PlusOutlined, LoadingOutlined } from '@ant-design/icons'
+import { UploadChangeParam } from 'antd/es/upload'
+import { addFilm, getFilmList } from '@/api/film'
 
 function FilmManage() {
-  function getToken() {
-    return localStorage.getItem('token')
-  }
-  const navigate = useNavigate()
+  const [form] = Form.useForm();
   const [addState, setAddState ] = useState(false)
-  const [loading, _setLoading ] = useState(false)
-
-  function addFilm() {
+  const [loading, setLoading ] = useState(false)
+  const [uploading, setUploading ] = useState(false)
+  const [imgUrl, setImgUrl] = useState<string>()
+  function _addFilm() {
     setAddState(true)
   }
   function handleCancel() {
     setAddState(false)
-  }
-  function submit() {
-    navigate('/fragment-manage')
-    // console.log('提交');
-  }
-  function getHostUrl() {
-    return (import.meta.env.MODE === 'development' ? 'http://localhost:7001' : '/api') + '/file/img'
+    setImgUrl(undefined)
   }
   const uploadProps: UploadProps  = {
     listType: 'picture-card',
     name: 'file',
     action: '/api/file/img',
-    headers: { Authorization: `Bearer ${getToken()}`}
+    headers: { Authorization: `Bearer ${getToken()}`},
+    showUploadList: false,
+    onChange(info: UploadChangeParam) {
+      const { status, response } = info.file
+      if (status === 'uploading') {
+        setUploading(true)
+      }
+      if (status === 'done') {
+        setUploading(false)
+        form.setFieldValue('filmCover', response.url)
+        setImgUrl(response.url)
+      }
+    }
+  }
+  function onFinish(values: any) {
+    setLoading(true)
+    addFilm(values).then(() => {
+      message.success('创建电影成功')
+      handleCancel()
+    }).finally(() => setLoading(false))
   }
   return <div>
-    <Button type='primary' onClick={addFilm}>新建电影</Button>
+    <Button type='primary' onClick={_addFilm}>新建电影</Button>
     <Modal 
       title='新增电影' 
       open={addState} 
       confirmLoading={loading} 
       onCancel={handleCancel} 
       destroyOnClose={true}
-      onOk={submit}
+      onOk={() => form.submit()}
+      cancelText='取消'
+      okText='确定添加'
     >
-      <Form preserve={false}>
-        <Form.Item label="电影名称" name="filmName">
+      <Form preserve={false} form={form} p-t-2 onFinish={onFinish}>
+        <Form.Item label="电影名称" name="filmName" rules={[{ required: true, message: '请输入电脑名称' }]}>
           <Input placeholder='请输入电影名称' w-60/>
         </Form.Item>
-        <Form.Item label="电影封面" valuePropName='filmCover'>
+        <Form.Item label="电影封面" valuePropName='filmCover' name='filmCover' rules={[{ required: true, message: '请上传电影封面图片' }]}>
           <Upload {...uploadProps}>
-            <PlusOutlined />
+              {uploading && <LoadingOutlined />}
+              {(!uploading && imgUrl) && <img style={{width: '100px', height: '100px', objectFit: 'cover'}} src={imgUrl} />}
+              {(!uploading && !imgUrl) && <PlusOutlined />}
           </Upload>
         </Form.Item>
       </Form>
@@ -58,3 +72,7 @@ function FilmManage() {
 }
 
 export default FilmManage
+
+function getToken() {
+  return localStorage.getItem('token')
+}

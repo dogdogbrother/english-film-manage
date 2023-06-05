@@ -5,6 +5,7 @@ import {
 import FilmManage from '@/pages/film-manage'
 import Home from '@/pages/home'
 import FragmentManage from '@/pages/fragment-manage'
+import { Navigate } from 'react-router-dom'
 
 export interface ContentRoutes {
   path: string
@@ -37,5 +38,10 @@ export const contentRoutes: ContentRoutes[] = [
     element: <FragmentManage />, 
     name: '电影片段',
     hidden: true
+  },
+  {
+    path: '',
+    element: <Navigate to='/home' />,
+    name: '*'
   },
 ]

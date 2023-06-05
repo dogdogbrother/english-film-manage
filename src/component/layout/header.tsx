@@ -4,7 +4,7 @@ import layoutStore from './layoutStore'
 import UserStore from '@/store/user'
 import { useEffect } from 'react'
 import { getInfo } from '@/api/user'
-import { Dropdown } from 'antd'
+import { Dropdown, message } from 'antd'
 import type { MenuProps } from 'antd'
 import { useNavigate } from 'react-router-dom'
 
@@ -16,11 +16,15 @@ const Header = observer(() => {
     getInfo().then(res => {
       setUsername(res.username)
       setId(res.id)
+    }).catch(async () => {
+      await logout()
+      navigate('/login')
     })
   }, [])
   const { setCollapsed, collapsed } = layoutStore
   async function _logout() {
     await logout()
+    message.success('已退出登录')
     navigate('/login')
   }
   const items: MenuProps['items'] = [

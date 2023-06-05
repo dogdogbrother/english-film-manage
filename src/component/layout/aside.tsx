@@ -32,7 +32,7 @@ const Aside = observer(() => {
     } as MenuItem;
   }
   
-  const items: MenuItem[] = contentRoutes.filter(route => !route.hidden).map(route => {
+  const items: MenuItem[] = contentRoutes.filter(route => !route.hidden && route.name !== '*').map(route => {
     const { path, children, icon, name } = route
     return getItem(
       name, 

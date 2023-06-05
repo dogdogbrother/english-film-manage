@@ -28,6 +28,7 @@ class UserStore {
     this.username = ''
     this.token = ''
     this.id = ''
+    localStorage.setItem('token', '')
     return new Promise((res) => res(undefined))
   }
 }

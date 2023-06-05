@@ -1,5 +1,4 @@
 import queryString, { StringifiableRecord } from 'query-string'
-
 function getToken() {
   return localStorage.getItem('token')
 }
@@ -20,8 +19,8 @@ export function useGetFetch<ResProp = any>(config: FetchProp) {
     if (status >= 200 && status < 300) {
       return res.json() as ResProp
     } else if (status === 401) {
+      console.log(res.url);
       if (!res.url.includes('/user/info')) {
-        // toast.error('未登录~')
         return Promise.reject('未登录~')
       }
       return Promise.reject('未登录~')
