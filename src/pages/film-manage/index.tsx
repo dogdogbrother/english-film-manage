@@ -1,17 +1,31 @@
-import { Button, Modal, Form, Input, Upload, message } from 'antd'
+import { Button, Modal, Form, Input, Upload, message, Skeleton } from 'antd'
 import type { UploadProps } from 'antd'
 import { useState } from 'react'
-import { PlusOutlined, LoadingOutlined } from '@ant-design/icons'
+import { PlusOutlined, LoadingOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import { UploadChangeParam } from 'antd/es/upload'
 import { addFilm, getFilmList } from '@/api/film'
-import { useQueryClient, useQuery } from '@tanstack/react-query'
+import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query'
+
 function FilmManage() {
   const [form] = Form.useForm();
   const [addState, setAddState ] = useState(false)
+  const [fragmentState, setFragmentState] = useState(false)
   const [loading, setLoading ] = useState(false)
   const [uploading, setUploading ] = useState(false)
   const [imgUrl, setImgUrl] = useState<string>()
+  const queryClient = useQueryClient()
   const { data = [], isLoading } = useQuery({queryKey: ['filmList'], queryFn: getFilmList})
+  const { mutate } = useMutation({
+    mutationFn: addFilm,
+    onSuccess: () => {
+      setLoading(false)
+      message.success('创建电影成功')
+      queryClient.invalidateQueries({ queryKey: ['filmList'] })
+    },
+    onError: () => {
+      setLoading(false)
+    }
+  })
   function _addFilm() {
     setAddState(true)
   }
@@ -39,22 +53,34 @@ function FilmManage() {
   }
   function onFinish(values: any) {
     setLoading(true)
-    addFilm(values).then(() => {
-      message.success('创建电影成功')
-      handleCancel()
-    }).finally(() => setLoading(false))
+    mutate(values)
+  }
+  function openFragment(id: string) {
+    setFragmentState(true)
+    console.log(id);
   }
   return <div>
     <Button type='primary' onClick={_addFilm}>新建电影</Button>
-    <ul flex m-r--5 p-y-5 cursor-pointer>
-      {data.map(film => {
-        return <li key={film.id} m-r-5>
-          <img w-30 h-40 object-cover src={film.filmCover} alt={film.filmName} />
-          <div p-y-1>
-            <h4>{film.filmName}</h4>
-          </div>
+    <ul flex m-r-5 p-y-5 flex-wrap>
+      {
+        isLoading
+        ? 
+        <li flex flex-col>
+          <Skeleton.Image style={{height: '160px', width: '120px', marginBottom: '5px'}} active />
+          <Skeleton.Input style={{height: '18px', width: '120px'}} size="small" active />
         </li>
-      })}
+        :
+        data.map(film => {
+          return <li key={film.id} m-r-5 m-b-5 cursor-pointer onClick={() => openFragment(film.id)}>
+            <img w-30 h-40 object-cover src={film.filmCover} alt={film.filmName} />
+            <h4 p-y-1>{film.filmName}</h4>
+            <div>
+              <Button type="primary" size='small' m-r-2 shape="circle" icon={<EditOutlined />} />
+              <Button type="primary" danger size='small' shape="circle" icon={<DeleteOutlined />} />
+            </div>
+          </li>
+        })
+      }
     </ul>
     <Modal 
       title='新增电影' 
@@ -64,7 +90,7 @@ function FilmManage() {
       destroyOnClose={true}
       onOk={() => form.submit()}
       cancelText='取消'
-      okText='确定添加'
+      okText='确认'
     >
       <Form preserve={false} form={form} p-t-2 onFinish={onFinish}>
         <Form.Item label="电影名称" name="filmName" rules={[{ required: true, message: '请输入电脑名称' }]}>
@@ -78,6 +104,14 @@ function FilmManage() {
           </Upload>
         </Form.Item>
       </Form>
+    </Modal>
+    <Modal
+      title='查看电影片段'
+      open={fragmentState}
+      cancelText='取消'
+      okText='确定添加'
+    >
+      <div>123</div>
     </Modal>
   </div> 
 }
