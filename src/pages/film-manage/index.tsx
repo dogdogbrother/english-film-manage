@@ -4,14 +4,18 @@ import { useState } from 'react'
 import { PlusOutlined, LoadingOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import { UploadChangeParam } from 'antd/es/upload'
 import { addFilm, getFilmList, addFragment, getFragmentList } from '@/api/film'
+import type { FragmentProp } from '@/api/film'
 import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 
 function FilmManage() {
+  const navigate = useNavigate()
   const [form] = Form.useForm();
   const [fragmentForm] = Form.useForm();
   const [currentFilmId, setCurrentFilmId] = useState<string>()
   const [addState, setAddState ] = useState(false)
   const [fragmentState, setFragmentState] = useState(false)
+  const [fragmentList, setFragmentList] = useState<FragmentProp[]>([])
   const [fragmentLoading, setFragmentLoading] = useState(false)
   const [loading, setLoading ] = useState(false)
   const [uploading, setUploading ] = useState(false)
@@ -29,6 +33,10 @@ function FilmManage() {
     onError: () => {
       setLoading(false)
     }
+  })
+  const { mutate: getFragmentListMutate } = useMutation({
+    mutationFn: getFragmentList,
+    onSuccess: setFragmentList
   })
   function _addFilm() {
     setAddState(true)
@@ -62,15 +70,18 @@ function FilmManage() {
   function openFragment(id: string) {
     setFragmentState(true)
     setCurrentFilmId(id)
-    getFragmentList(id).then(res => {
-      console.log(res);
-    })
+    getFragmentListMutate(id)
   }
   function onAddFragment(vlues: any) {
     setFragmentLoading(true)
     addFragment({...vlues, filmId: currentFilmId}).then(() => {
       message.success('添加剧集成功')
-    }).finally(() => setFragmentLoading(true))
+      getFragmentListMutate(currentFilmId!)
+    }).finally(() => setFragmentLoading(false))
+  }
+  function toFragmentManage(fragmentId: string) {
+    setFragmentState(false)
+    navigate(`/fragment-manage/${fragmentId}`)
   }
   return <div>
     <Button type='primary' onClick={_addFilm}>新建电影</Button>
@@ -124,12 +135,20 @@ function FilmManage() {
       cancelText='取消'
       onCancel={() => setFragmentState(false)}
       footer={null}
+      destroyOnClose={true}
     >
       <div p-t-2>
+        <ul>
+          {
+            fragmentList.map(fragment => <li overflow-hidden m-b-2 key={fragment.id}>
+              <Button type='link' onClick={() => toFragmentManage(fragment.id)}>{fragment.fragmentUrl}</Button>
+            </li>)
+          }
+        </ul>
         <Form preserve={false} form={fragmentForm} p-t-2 onFinish={onAddFragment}>
           <Form.Item label="片段地址" name="fragmentUrl" rules={[{ required: true, message: '请输入片段地址的url' }]}>
             <div>
-              <Input placeholder='请输入片段地址的url' w-60 m-r-2/>
+              <Input placeholder='请输入片段地址的url' w-60 m-r-2 m-b-3/>
               <Button type='primary' htmlType="submit" loading={fragmentLoading}>确认添加</Button>
             </div>
           </Form.Item>

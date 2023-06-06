@@ -32,8 +32,23 @@ export function addFragment({ filmId, fragmentUrl }: AddFragment) {
   })
 }
 
+export interface FragmentProp {
+  fragmentUrl: string
+  filmId: string
+  id: string
+}
 export function getFragmentList(filmId: string) {
-  return useGetFetch<FilmProp[]>({
+  return useGetFetch<FragmentProp[]>({
     url: `/api/film/${filmId}/fragment`,
+  })
+}
+
+interface GetFragmentRes {
+  fragmentUrl: string
+  id: string
+}
+export function getFragment(fragmentId: string) {
+  return useGetFetch<GetFragmentRes>({
+    url: `/api/film/fragment/${fragmentId}`,
   })
 }

@@ -34,7 +34,7 @@ export const contentRoutes: ContentRoutes[] = [
     name: '电影管理'
   },
   { 
-    path: '/fragment-manage', 
+    path: '/fragment-manage/:fragmentId', 
     element: <FragmentManage />, 
     name: '电影片段',
     hidden: true
