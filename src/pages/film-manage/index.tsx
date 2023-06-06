@@ -3,13 +3,16 @@ import type { UploadProps } from 'antd'
 import { useState } from 'react'
 import { PlusOutlined, LoadingOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import { UploadChangeParam } from 'antd/es/upload'
-import { addFilm, getFilmList } from '@/api/film'
+import { addFilm, getFilmList, addFragment, getFragmentList } from '@/api/film'
 import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query'
 
 function FilmManage() {
   const [form] = Form.useForm();
+  const [fragmentForm] = Form.useForm();
+  const [currentFilmId, setCurrentFilmId] = useState<string>()
   const [addState, setAddState ] = useState(false)
   const [fragmentState, setFragmentState] = useState(false)
+  const [fragmentLoading, setFragmentLoading] = useState(false)
   const [loading, setLoading ] = useState(false)
   const [uploading, setUploading ] = useState(false)
   const [imgUrl, setImgUrl] = useState<string>()
@@ -20,6 +23,7 @@ function FilmManage() {
     onSuccess: () => {
       setLoading(false)
       message.success('创建电影成功')
+      setAddState(false)
       queryClient.invalidateQueries({ queryKey: ['filmList'] })
     },
     onError: () => {
@@ -57,7 +61,16 @@ function FilmManage() {
   }
   function openFragment(id: string) {
     setFragmentState(true)
-    console.log(id);
+    setCurrentFilmId(id)
+    getFragmentList(id).then(res => {
+      console.log(res);
+    })
+  }
+  function onAddFragment(vlues: any) {
+    setFragmentLoading(true)
+    addFragment({...vlues, filmId: currentFilmId}).then(() => {
+      message.success('添加剧集成功')
+    }).finally(() => setFragmentLoading(true))
   }
   return <div>
     <Button type='primary' onClick={_addFilm}>新建电影</Button>
@@ -75,8 +88,8 @@ function FilmManage() {
             <img w-30 h-40 object-cover src={film.filmCover} alt={film.filmName} />
             <h4 p-y-1>{film.filmName}</h4>
             <div>
-              <Button type="primary" size='small' m-r-2 shape="circle" icon={<EditOutlined />} />
-              <Button type="primary" danger size='small' shape="circle" icon={<DeleteOutlined />} />
+              <Button type="primary" size='small' m-r-2 shape="circle" icon={<EditOutlined /> as any} />
+              <Button type="primary" danger size='small' shape="circle" icon={<DeleteOutlined /> as any} />
             </div>
           </li>
         })
@@ -109,9 +122,19 @@ function FilmManage() {
       title='查看电影片段'
       open={fragmentState}
       cancelText='取消'
-      okText='确定添加'
+      onCancel={() => setFragmentState(false)}
+      footer={null}
     >
-      <div>123</div>
+      <div p-t-2>
+        <Form preserve={false} form={fragmentForm} p-t-2 onFinish={onAddFragment}>
+          <Form.Item label="片段地址" name="fragmentUrl" rules={[{ required: true, message: '请输入片段地址的url' }]}>
+            <div>
+              <Input placeholder='请输入片段地址的url' w-60 m-r-2/>
+              <Button type='primary' htmlType="submit" loading={fragmentLoading}>确认添加</Button>
+            </div>
+          </Form.Item>
+        </Form>
+      </div>
     </Modal>
   </div> 
 }

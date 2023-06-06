@@ -21,3 +21,19 @@ export function getFilmList() {
     url: '/api/film/list',
   })
 }
+interface AddFragment{
+  filmId: string
+  fragmentUrl: string
+}
+export function addFragment({ filmId, fragmentUrl }: AddFragment) {
+  return usePostFetch({
+    url: `/api/film/${filmId}/fragment`,
+    data: { fragmentUrl }
+  })
+}
+
+export function getFragmentList(filmId: string) {
+  return useGetFetch<FilmProp[]>({
+    url: `/api/film/${filmId}/fragment`,
+  })
+}
