@@ -28,6 +28,7 @@ const FragmentMange = () => {
   const [durationTime, setDurationTime] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
   const [slidrTime, setSlidrTime] = useState(0)
+  const [formRef] = Form.useForm();
   useEffect(() => {
     if (data) {
       const _player: Player = videojs('video-play', {
@@ -136,95 +137,102 @@ const FragmentMange = () => {
   function onFinish(values: CaptionProp) {
     console.log(values);
   }
-  return <div>
-    <Form inline>
-      <Form.Item label='倍速' w-45>
-        <Select value={form.value} onChange={handlePlaybackRates}>
-          <Select.Option value={0.5}>0.5倍播放</Select.Option>
-          <Select.Option value={1}>正常播放</Select.Option>
-          <Select.Option value={1.5}>1.5倍播放</Select.Option>
-        </Select>
-      </Form.Item>
-    </Form>
-    <div relative w-240 m-b-2>
-      <video 
-        w-240
-        h-auto
-        style={{border: 'none', verticalAlign: 'middle'}}
-        object-fit='cover'
-        id='video-play'
-        playsInline 
-      />
-      <div>
-        {
-          playState 
-          ?
-          <PauseCircleOutlined {...playIconProp as any} onClick={onPause}/>
-          :
-          <PlayCircleOutlined {...playIconProp as any} onClick={onPlay}/>
-        }
-      </div>
-    </div>
-    <div flex flex-items-center w-240 m-b-3>
-      <span m-r-2>{getFormattTime(currentTime)}</span>
-      <div flex-1 >
-        <Slider 
-          max={durationTime * 10000} 
-          tooltip={{formatter: () => getFormattTime(currentTime)}} 
-          value={slidrTime || currentTime * 10000}
-          onChange={changeSlider}
-          onAfterChange={onAfterChange}
+  return <div flex>
+    <div w-200 m-r-5>
+      <Form inline>
+        <Form.Item label='倍速' w-45>
+          <Select value={form.value} onChange={handlePlaybackRates}>
+            <Select.Option value={0.5}>0.5倍播放</Select.Option>
+            <Select.Option value={1}>正常播放</Select.Option>
+            <Select.Option value={1.5}>1.5倍播放</Select.Option>
+          </Select>
+        </Form.Item>
+      </Form>
+      <div relative w-220 m-b-2>
+        <video 
+          w-200
+          h-auto
+          style={{border: 'none', verticalAlign: 'middle'}}
+          object-fit='cover'
+          id='video-play'
+          playsInline 
         />
-      </div>
-      <span m-l-2>{getFormattTime(durationTime)}</span>
-    </div>
-    <div m-b-7 flex flex-items-center>
-      <p m-r-1 w-25>{(currentTime * 1000).toFixed(0)}毫秒</p>
-      <Button m-r-15 type='primary' size='small' onClick={_copy}>复制秒数</Button>
-      <Button m-r-3 type='primary' size='small' onClick={setTime(-500)}>减500毫秒</Button>
-      <Button m-r-3 type='primary' size='small' onClick={setTime(-200)}>减200毫秒</Button>
-      <Button m-r-15 type='primary' size='small' onClick={setTime(-50)}>减50毫秒</Button>
-      <Button m-r-3 type='primary' size='small' onClick={setTime(50)}>加50毫秒</Button>
-      <Button m-r-3 type='primary' size='small' onClick={setTime(200)}>加200毫秒</Button>
-      <Button type='primary' size='small' onClick={setTime(500)}>加500毫秒</Button>
-    </div>
-    <Form 
-      labelCol={{span: 3}} 
-      wrapperCol={{span: 8}} 
-      labelAlign='left' 
-      requiredMark={false}
-      w-170
-      onFinish={onFinish}
-    >
-      <Form.Item 
-        label='开始时间' 
-        name='start' 
-        rules={[{ required: true, message: '请输入开始时间' }]}
-      >
-        <Input w-50 placeholder='开始时毫秒数' />
-      </Form.Item>
-      <Form.Item 
-        label='结束时间' 
-        name='end'
-        rules={[{ required: true, message: '请输入结束时间' }]}
-      >
-        <Input w-50 placeholder='结束时毫秒数' />
-      </Form.Item>
-     <Form.Item label='英文原文'name='en'>
-        <Input.TextArea placeholder='请输入英文原文' />
-      </Form.Item>
-      <Form.Item label='中文译文' name='cn'>
-        <Input.TextArea placeholder='请输入中文译文' />
-      </Form.Item>
-      <Form.Item labelCol={{span: 3}} wrapperCol={{span: 8, offset: 3}}>
         <div>
-          <Button m-r-2>取消</Button>
-          <Button type='primary' htmlType='submit'>确认</Button>
+          {
+            playState 
+            ?
+            <PauseCircleOutlined {...playIconProp as any} onClick={onPause}/>
+            :
+            <PlayCircleOutlined {...playIconProp as any} onClick={onPlay}/>
+          }
         </div>
-      </Form.Item>
-    </Form>
-    {/* {JSON.stringify(data)} */}
-    {/* <input onKeyDown={(event: any) => event.stopPropagation()} /> */}
+      </div>
+      <div flex flex-items-center w-200 m-b-3>
+        <span m-r-2>{getFormattTime(currentTime)}</span>
+        <div flex-1 >
+          <Slider 
+            max={durationTime * 10000} 
+            tooltip={{formatter: () => getFormattTime(currentTime)}} 
+            value={slidrTime || currentTime * 10000}
+            onChange={changeSlider}
+            onAfterChange={onAfterChange}
+          />
+        </div>
+        <span m-l-2>{getFormattTime(durationTime)}</span>
+      </div>
+      <div m-b-7 flex flex-items-center>
+        <p m-r-1 w-25>{(currentTime * 1000).toFixed(0)}毫秒</p>
+        <Button m-r-15 type='primary' size='small' onClick={_copy}>复制秒数</Button>
+        <Button m-r-3 type='primary' size='small' onClick={setTime(-500)}>减500毫秒</Button>
+        <Button m-r-3 type='primary' size='small' onClick={setTime(-200)}>减200毫秒</Button>
+        <Button m-r-15 type='primary' size='small' onClick={setTime(-50)}>减50毫秒</Button>
+        <Button m-r-3 type='primary' size='small' onClick={setTime(50)}>加50毫秒</Button>
+        <Button m-r-3 type='primary' size='small' onClick={setTime(200)}>加200毫秒</Button>
+        <Button type='primary' size='small' onClick={setTime(500)}>加500毫秒</Button>
+      </div>
+      <Form 
+        labelCol={{span: 3}} 
+        wrapperCol={{span: 8}} 
+        labelAlign='left' 
+        requiredMark={false}
+        onFinish={onFinish}
+        w-200
+      >
+        <Form.Item 
+          flex-1
+          label='开始时间' 
+          name='start' 
+          rules={[{ required: true, message: '请输入开始时间' }]}
+        >
+          <Input w-50 placeholder='开始时毫秒数' />
+        </Form.Item>
+        <Form.Item 
+          flex-1
+          label='结束时间' 
+          name='end'
+          rules={[{ required: true, message: '请输入结束时间' }]}
+        >
+          <Input w-50 placeholder='结束时毫秒数' />
+        </Form.Item>
+        <Form.Item label='英文原文'name='en' rules={[{ required: true, message: '请输入英文原文' }]}>
+          <Input.TextArea placeholder='请输入英文原文' />
+        </Form.Item>
+        <Form.Item label='中文译文' name='cn' rules={[{ required: true, message: '请输入中文译文' }]}>
+          <Input.TextArea placeholder='请输入中文译文' />
+        </Form.Item>
+        <Form.Item labelCol={{span: 3}} wrapperCol={{span: 8, offset: 3}}>
+          <div>
+            <Button m-r-2>取消</Button>
+            <Button type='primary' htmlType='submit'>确认</Button>
+          </div>
+        </Form.Item>
+      </Form>
+      {/* {JSON.stringify(data)} */}
+      {/* <input onKeyDown={(event: any) => event.stopPropagation()} /> */}
+    </div>
+    <ul flex-1 bg-blue>
+
+    </ul>
   </div>
 }
 export default FragmentMange
