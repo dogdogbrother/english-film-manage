@@ -1,7 +1,8 @@
 import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query'
-import { getFragment } from '@/api/film'
+import { getFragment, getCaption } from '@/api/film'
+import type { CaptionProp } from '@/api/film'
 import { useParams } from 'react-router-dom'
-import { Form, Select, Slider, Button, Input } from 'antd'
+import { Form, Select, Slider, Button, Input, message } from 'antd'
 import { useState, useEffect } from 'react'
 import videojs from 'video.js'
 import zhLang from 'video.js/dist/lang/zh-CN.json'
@@ -11,24 +12,30 @@ import '@/assets/style/video-reset.css'
 import copy from 'copy-to-clipboard'
 
 videojs.addLanguage('zh-CN', zhLang)
-interface CaptionProp {
-  start: string
-  end: string
-  en: string
-  cn: string
-}
+
 const FragmentMange = () => {
   const queryClient = useQueryClient()
   const [ player, setPlayer ] = useState<Player>()
   const [ playState, setPlayState ] = useState(false)
   const { fragmentId } = useParams()
-  const { data, isLoading } = useQuery({queryKey: ['getFragment', fragmentId], queryFn: () => getFragment(fragmentId!)})
+  const { data } = useQuery({queryKey: ['getFragment', fragmentId], queryFn: () => getFragment(fragmentId!)})
   const [form, setForm] = useState({ value: 1 })
-  const [caption, setCaption] = useState<CaptionProp[]>([])
+  const [captions, setCaptions] = useState<CaptionProp[]>([])
+  const [captionId, setCaptionId] = useState()
   const [durationTime, setDurationTime] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
   const [slidrTime, setSlidrTime] = useState(0)
-  const [formRef] = Form.useForm();
+  const [formRef] = Form.useForm()
+  useEffect(() => {
+    // 请求字幕
+    _getCaption()
+  }, [])
+  function _getCaption() {
+    getCaption(fragmentId!).then((res) => {
+      // setCaptions(res)
+      // console.log(res);
+    })
+  }
   useEffect(() => {
     if (data) {
       const _player: Player = videojs('video-play', {
@@ -135,9 +142,32 @@ const FragmentMange = () => {
     copy((currentTime * 1000).toFixed(0))
   }
   function onFinish(values: CaptionProp) {
-    console.log(values);
+    setCaptions([...captions, values])
+    formRef.resetFields()
   }
-  return <div flex>
+  // 保存弹幕
+  function saveCaption() {
+    if (captions.length === 0) {
+      return message.error('一条弹幕都没有你提交个啥')
+    }
+    console.log();
+    
+  }
+  // 获取到当前的字幕
+  function getCurrenCaption() {
+    const findCaption = captions.find(caption => {
+      const { start, end } = caption
+      return (currentTime * 1000) >= start && (currentTime * 1000) <= end
+    })
+    if (findCaption) {
+      const {en, cn} = findCaption
+      return <>
+        <p text-5 color-white m-b-3>{en}</p>
+        <p color-white>{cn}</p>
+      </>
+    }
+  }
+  return <div flex style={{height: '100%'}}>
     <div w-200 m-r-5>
       <Form inline>
         <Form.Item label='倍速' w-45>
@@ -166,6 +196,10 @@ const FragmentMange = () => {
             <PlayCircleOutlined {...playIconProp as any} onClick={onPlay}/>
           }
         </div>
+        {/* 显示的字幕内容 */}
+        <div absolute bottom-5 left-5 right-5 color-white>
+          <div text-center>{getCurrenCaption()}</div>
+        </div>
       </div>
       <div flex flex-items-center w-200 m-b-3>
         <span m-r-2>{getFormattTime(currentTime)}</span>
@@ -191,6 +225,7 @@ const FragmentMange = () => {
         <Button type='primary' size='small' onClick={setTime(500)}>加500毫秒</Button>
       </div>
       <Form 
+        form={formRef}
         labelCol={{span: 3}} 
         wrapperCol={{span: 8}} 
         labelAlign='left' 
@@ -215,23 +250,37 @@ const FragmentMange = () => {
           <Input w-50 placeholder='结束时毫秒数' />
         </Form.Item>
         <Form.Item label='英文原文'name='en' rules={[{ required: true, message: '请输入英文原文' }]}>
-          <Input.TextArea placeholder='请输入英文原文' />
+          <Input.TextArea placeholder='请输入英文原文' onKeyDown={(event: any) => event.stopPropagation()} />
         </Form.Item>
         <Form.Item label='中文译文' name='cn' rules={[{ required: true, message: '请输入中文译文' }]}>
-          <Input.TextArea placeholder='请输入中文译文' />
+          <Input.TextArea placeholder='请输入中文译文' onKeyDown={(event: any) => event.stopPropagation()} />
         </Form.Item>
         <Form.Item labelCol={{span: 3}} wrapperCol={{span: 8, offset: 3}}>
           <div>
-            <Button m-r-2>取消</Button>
+            <Button m-r-2 onClick={() => formRef.resetFields()}>取消</Button>
             <Button type='primary' htmlType='submit'>确认</Button>
           </div>
         </Form.Item>
       </Form>
-      {/* {JSON.stringify(data)} */}
-      {/* <input onKeyDown={(event: any) => event.stopPropagation()} /> */}
     </div>
-    <ul flex-1 bg-blue>
-
+    <ul flex-1 style={{height: '100%'}} overflow-y-auto>
+      {
+        captions.map(caption => <li p-y-3 key={caption.start} border="b-solid b-1 gray-3" >
+          <div flex m-b-2 style={{fontSize: '15px'}}>
+            <div w-60>
+              <span m-r-3>开始时间</span>
+              <span>{caption.start}</span>
+            </div>
+            <div>
+              <span m-r-3>结束时间</span>
+              <span>{caption.end}</span>
+            </div>
+          </div>
+          <p m-b-1>{caption.en}</p>
+          <p>{caption.cn}</p>
+        </li>)
+      }
+      <Button type='primary' m-t-5 onClick={saveCaption}>保存弹幕</Button>
     </ul>
   </div>
 }

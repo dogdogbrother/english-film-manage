@@ -52,3 +52,15 @@ export function getFragment(fragmentId: string) {
     url: `/api/film/fragment/${fragmentId}`,
   })
 }
+
+export interface CaptionProp {
+  start: string
+  end: string
+  en: string
+  cn: string
+}
+export function getCaption(fragmentId: string) {
+  return useGetFetch<CaptionProp[]>({
+    url: `/api/film/${fragmentId}/caption`,
+  })
+}
