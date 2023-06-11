@@ -1,8 +1,8 @@
 import { useQueryClient, useQuery, useMutation } from '@tanstack/react-query'
-import { getFragment, getCaption } from '@/api/film'
+import { getFragment, getCaption, addCaption } from '@/api/film'
 import type { CaptionProp } from '@/api/film'
 import { useParams } from 'react-router-dom'
-import { Form, Select, Slider, Button, Input, message } from 'antd'
+import { Form, Select, Slider, Button, Input, message, InputNumber  } from 'antd'
 import { useState, useEffect } from 'react'
 import videojs from 'video.js'
 import zhLang from 'video.js/dist/lang/zh-CN.json'
@@ -21,7 +21,8 @@ const FragmentMange = () => {
   const { data } = useQuery({queryKey: ['getFragment', fragmentId], queryFn: () => getFragment(fragmentId!)})
   const [form, setForm] = useState({ value: 1 })
   const [captions, setCaptions] = useState<CaptionProp[]>([])
-  const [captionId, setCaptionId] = useState()
+  const [captionIndex, setCaptionIndex] = useState<number>()
+  const [addLoading, setAddLoading] = useState(false)
   const [durationTime, setDurationTime] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
   const [slidrTime, setSlidrTime] = useState(0)
@@ -32,8 +33,7 @@ const FragmentMange = () => {
   }, [])
   function _getCaption() {
     getCaption(fragmentId!).then((res) => {
-      // setCaptions(res)
-      // console.log(res);
+      setCaptions(res)
     })
   }
   useEffect(() => {
@@ -142,7 +142,10 @@ const FragmentMange = () => {
     copy((currentTime * 1000).toFixed(0))
   }
   function onFinish(values: CaptionProp) {
-    setCaptions([...captions, values])
+    if (captionIndex || captionIndex === 0) {
+      captions.splice(captionIndex, 1, values)
+      setCaptions([...captions])
+    } else setCaptions([...captions, values])
     formRef.resetFields()
   }
   // 保存弹幕
@@ -150,8 +153,11 @@ const FragmentMange = () => {
     if (captions.length === 0) {
       return message.error('一条弹幕都没有你提交个啥')
     }
-    console.log();
-    
+    setAddLoading(true)
+    addCaption({fragmentId: fragmentId!, caption: captions}).then(() => {
+      message.success('保存弹幕成功')
+      _getCaption()
+    }).finally(() => setAddLoading(false))
   }
   // 获取到当前的字幕
   function getCurrenCaption() {
@@ -167,6 +173,32 @@ const FragmentMange = () => {
       </>
     }
   }
+  function validatorStarTime(_rule: any, value: number) {
+    if (!value) return Promise.resolve()
+    if (captions.length === 0) return Promise.resolve()
+    if (captionIndex === 0) return Promise.resolve()
+    if (value <= captions[(captionIndex || captions.length) - 1].end) {
+      return Promise.reject('不能比最后一条弹幕的时间短')
+    }
+    return Promise.resolve()
+  }
+  function validatorEndTime(_rule: any, value: number) {
+    if (!value) return Promise.resolve()
+    console.log(formRef.getFieldValue('start'));
+    if (value <= formRef.getFieldValue('start')) {
+      return Promise.reject('结束时间不能比开始时间短')
+    }
+    return Promise.resolve()
+  }
+  function selectCaption(index: number) {
+    const { start, end, en, cn } = captions[index]
+    setCaptionIndex(index)
+    formRef.setFieldsValue({start, end, en, cn})
+  }
+  function cancelForm() {
+    setCaptionIndex(undefined)
+    formRef.resetFields()
+  }
   return <div flex style={{height: '100%'}}>
     <div w-200 m-r-5>
       <Form inline>
@@ -178,7 +210,7 @@ const FragmentMange = () => {
           </Select>
         </Form.Item>
       </Form>
-      <div relative w-220 m-b-2>
+      <div relative w-200 m-b-2>
         <video 
           w-200
           h-auto
@@ -226,28 +258,34 @@ const FragmentMange = () => {
       </div>
       <Form 
         form={formRef}
-        labelCol={{span: 3}} 
+        labelCol={{span: 2}} 
         wrapperCol={{span: 8}} 
         labelAlign='left' 
         requiredMark={false}
         onFinish={onFinish}
-        w-200
+        w-280
       >
         <Form.Item 
           flex-1
           label='开始时间' 
           name='start' 
-          rules={[{ required: true, message: '请输入开始时间' }]}
+          rules={[
+            { required: true, message: '请输入开始时间' },
+            { validator: validatorStarTime, validateTrigger: 'onBlur' },
+          ]}
         >
-          <Input w-50 placeholder='开始时毫秒数' />
+          <InputNumber style={{width: '150px'}} placeholder='开始时毫秒数' />
         </Form.Item>
         <Form.Item 
           flex-1
           label='结束时间' 
           name='end'
-          rules={[{ required: true, message: '请输入结束时间' }]}
+          rules={[
+            { required: true, message: '请输入结束时间' },
+            { validator: validatorEndTime, validateTrigger: 'onBlur'}
+          ]}
         >
-          <Input w-50 placeholder='结束时毫秒数' />
+          <InputNumber style={{width: '150px'}} placeholder='结束时毫秒数' />
         </Form.Item>
         <Form.Item label='英文原文'name='en' rules={[{ required: true, message: '请输入英文原文' }]}>
           <Input.TextArea placeholder='请输入英文原文' onKeyDown={(event: any) => event.stopPropagation()} />
@@ -255,9 +293,9 @@ const FragmentMange = () => {
         <Form.Item label='中文译文' name='cn' rules={[{ required: true, message: '请输入中文译文' }]}>
           <Input.TextArea placeholder='请输入中文译文' onKeyDown={(event: any) => event.stopPropagation()} />
         </Form.Item>
-        <Form.Item labelCol={{span: 3}} wrapperCol={{span: 8, offset: 3}}>
+        <Form.Item labelCol={{span: 2}} wrapperCol={{span: 8, offset: 3}}>
           <div>
-            <Button m-r-2 onClick={() => formRef.resetFields()}>取消</Button>
+            <Button m-r-2 onClick={cancelForm}>取消</Button>
             <Button type='primary' htmlType='submit'>确认</Button>
           </div>
         </Form.Item>
@@ -265,7 +303,14 @@ const FragmentMange = () => {
     </div>
     <ul flex-1 style={{height: '100%'}} overflow-y-auto>
       {
-        captions.map(caption => <li p-y-3 key={caption.start} border="b-solid b-1 gray-3" >
+        captions.map((caption, index) => <li 
+          p-y-3 
+          cursor-pointer
+          style={{backgroundColor: captionIndex === index ? '#eee' : '#fff'}}
+          onClick={() => selectCaption(index)} 
+          key={caption.start} 
+          border="b-solid b-1 gray-3"
+        >
           <div flex m-b-2 style={{fontSize: '15px'}}>
             <div w-60>
               <span m-r-3>开始时间</span>
@@ -280,7 +325,7 @@ const FragmentMange = () => {
           <p>{caption.cn}</p>
         </li>)
       }
-      <Button type='primary' m-t-5 onClick={saveCaption}>保存弹幕</Button>
+      <Button type='primary' loading={addLoading} m-t-5 onClick={saveCaption}>保存弹幕</Button>
     </ul>
   </div>
 }

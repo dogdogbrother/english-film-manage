@@ -51,16 +51,30 @@ export function getFragment(fragmentId: string) {
   return useGetFetch<GetFragmentRes>({
     url: `/api/film/fragment/${fragmentId}`,
   })
-}
+} 
 
 export interface CaptionProp {
-  start: string
-  end: string
+  start: number
+  end: number
   en: string
   cn: string
+  id?: string
 }
 export function getCaption(fragmentId: string) {
   return useGetFetch<CaptionProp[]>({
     url: `/api/film/${fragmentId}/caption`,
+  })
+}
+
+
+interface AddCaption {
+  caption: CaptionProp[]
+  fragmentId: string
+}
+export function addCaption(data: AddCaption) {
+  const { caption, fragmentId } = data
+  return usePostFetch({
+    url: `/api/film/${fragmentId}/caption`,
+    data: { caption }
   })
 }
