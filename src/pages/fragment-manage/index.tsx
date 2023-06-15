@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react'
 import videojs from 'video.js'
 import zhLang from 'video.js/dist/lang/zh-CN.json'
 import Player from 'video.js/dist/types/player'
-import { PlayCircleOutlined, PauseCircleOutlined } from '@ant-design/icons'
+import { PlayCircleOutlined, PauseCircleOutlined, DeleteOutlined } from '@ant-design/icons'
 import '@/assets/style/video-reset.css'
 import copy from 'copy-to-clipboard'
 
@@ -147,6 +147,7 @@ const FragmentMange = () => {
       setCaptions([...captions])
     } else setCaptions([...captions, values])
     formRef.resetFields()
+    setCaptionIndex(undefined)
   }
   // 保存弹幕
   function saveCaption() {
@@ -198,6 +199,10 @@ const FragmentMange = () => {
   function cancelForm() {
     setCaptionIndex(undefined)
     formRef.resetFields()
+  }
+  function delCaption(index: number) {
+    captions.splice(index, 1)
+    setCaptions([...captions])
   }
   return <div flex style={{height: '100%'}}>
     <div w-200 m-r-5>
@@ -320,6 +325,9 @@ const FragmentMange = () => {
               <span m-r-3>结束时间</span>
               <span>{caption.end}</span>
             </div>
+            {
+              captionIndex !== index ? <DeleteOutlined m-l-2 onClick={() => delCaption(index)}/> : null
+            }
           </div>
           <p m-b-1>{caption.en}</p>
           <p>{caption.cn}</p>
